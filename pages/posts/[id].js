@@ -47,6 +47,9 @@ const Post = ({ post }) => {
   // 記事を削除
   //
   async function handleDelete() {
+    const currentUser = await Auth.currentAuthenticatedUser();
+    if(currentUser.username != post.authorId) return;
+
     try {
       // TODO: 更新系はLambdaでBackend側で実装。
       await API.graphql({
@@ -64,8 +67,6 @@ const Post = ({ post }) => {
     }
   }
 
-  const currentUser = Auth.currentAuthenticatedUser();
-
   return (
     <div>
       <img src="../images/dummy.svg" alt="thumbnail"/>
@@ -81,8 +82,7 @@ const Post = ({ post }) => {
       </div>
 
       <AmplifyAuthenticator>
-        { (currentUser.username == post.authorId) ?
-          <button onClick={handleDelete}>削除</button>:"" }
+        <button onClick={handleDelete}>削除</button>
       </AmplifyAuthenticator>
     </div>
   );

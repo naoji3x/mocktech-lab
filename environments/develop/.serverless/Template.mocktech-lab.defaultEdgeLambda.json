@@ -1,0 +1,17 @@
+{
+  "name": "m4rqd8v-w9l6hjn",
+  "hash": "FL010HzZb5ZC608D70ABv2ZyEJ04cpyqshvbwpkogXk=",
+  "description": "Default Lambda@Edge for Next CloudFront distribution",
+  "memory": 512,
+  "timeout": 10,
+  "code": "/Users/naoto/Documents/projects/ClassTech-Lab/mocktech-lab/.serverless_nextjs/default-lambda",
+  "shims": [],
+  "handler": "index.handler",
+  "runtime": "nodejs12.x",
+  "env": {},
+  "role": {
+    "arn": "arn:aws:iam::555022377793:role/m4rqd8v-yep80pa"
+  },
+  "arn": "arn:aws:lambda:us-east-1:555022377793:function:m4rqd8v-w9l6hjn",
+  "region": "us-east-1"
+}

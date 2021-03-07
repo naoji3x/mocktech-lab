@@ -1,0 +1,11 @@
+{
+  "AppSyncApiName": "MocktechLabGql",
+  "DynamoDBBillingMode": "PAY_PER_REQUEST",
+  "DynamoDBEnableServerSideEncryption": false,
+  "AuthCognitoUserPoolId": {
+    "Fn::GetAtt": [
+      "authmocktechlab0adbeede",
+      "Outputs.UserPoolId"
+    ]
+  }
+}

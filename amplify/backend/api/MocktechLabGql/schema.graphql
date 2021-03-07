@@ -1,0 +1,158 @@
+#
+# ユーザー
+#
+type User @model(subscriptions: null)
+  @key(fields: ["userId"])
+  @auth(rules: [
+    { allow: owner, ownerField: "userId" },
+    { allow: private, operations: [read] }
+    ]) {
+  userId: ID!
+  name: String!
+  description: String!
+  posts: [Post] @connection(keyName: "postsByUserId", fields: ["userId"])
+  drafts: [Draft] @connection(keyName: "draftsByUserId", fields: ["userId"])
+  following: [Following] @connection(keyName: "followingByUserId", fields: ["userId"])
+}
+
+#
+# ドラフト（作成途中、非公開の投稿）。
+# テーブルを分けて作成者以外へは非公開。コメントもキーワードもなし。
+# 検索にも表示されない(ように実装)。
+#
+type Draft @model
+  @key(name: "draftsByUserId", fields: ["authorId"])
+  @auth(rules: [
+    { allow: owner ownerField: "authorId" },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  authorId: ID!
+  #author: User @connection(fields: ["authorId"])
+
+  title: String!
+  content: String!
+  images: [String!]! # TODO：S3で保存する場合はアクセス権限を設定要。
+  url: String!
+
+  keywordValues: [String!]! # keywordは非正規化して持つ。
+}
+
+#
+# 投稿
+#
+type Post @model
+  @key(name: "postsByUserId", fields: ["authorId"])
+  @auth(rules: [
+    { allow: owner ownerField: "authorId" },
+    { allow: public, operations: [read] },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  authorId: ID!
+  #author: User @connection(fields: ["authorId"])
+
+  title: String!
+  content: String!
+  images: [String!]!
+  url: String!
+
+  keywordValues: [String!]! # keywordは非正規化して持つ。
+
+  # TODO: 以下パフォーマンス対策で要検討。@connectionでリンクするとcomments, likesを読みに行くので、
+  # 遅くなる＋RCUを消費してしまう。
+  #commentUserNames: [String!]! # コメントしたユーザー名は非正規化して持つ。
+  #likedUserNames: [String!]! # いいねしたユーザーは非正規化して持つ。
+
+  comments: [Comment] @connection(keyName: "commentsByPostId", fields: ["id"])
+  likes: [PostLike] @connection(keyName: "postLikesByPostId", fields: ["id"])
+}
+
+#
+# キーワード
+#
+type Keyword @model
+  @auth(rules: [
+    { allow: owner, ownerField: "authorId" },
+    { allow: public, operations: [read] },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  authorId: ID!
+  value: String!
+}
+
+#
+# コメント
+#
+type Comment @model
+  @key(name: "commentsByPostId", fields: ["postId"])
+  @auth(rules: [
+    { allow: owner, ownerField: "authorId" },
+    { allow: public, operations: [read] },
+    { allow: private, operations: [read] }
+  ]) {
+  id: ID!
+  postId: ID!
+  authorId: ID!
+  text: String!
+  likes: [CommentLike] @connection(keyName: "commentLikesByCommentId", fields: ["id"])
+  #author: User @connection(fields: ["authorId"])
+  #post: Post @connection(fields: ["postId"])
+}
+
+#
+# 投稿へのいいね
+#
+type PostLike @model
+  @auth(rules: [
+    { allow: owner, ownerField: "userId" },
+    { allow: public, operations: [read] },
+    { allow: private, operations: [read] }
+  ])
+  @key(name: "postLikesByPostId", fields: ["postId"])
+  @key(name: "postLikesByUser", fields: ["userId", "createdAt"], queryField: "likesByUser") {
+  id: ID!
+  postId: ID!
+  userId: ID!
+  createdAt: String!
+  #user: User @connection(fields: ["userId"])
+  #post: Post @connection(fields: ["postId"])
+}
+
+#
+# コメントへのいいね
+#
+type CommentLike @model
+  @auth(rules: [
+    { allow: owner, ownerField: "userId" },
+    { allow: public, operations: [read] },
+    { allow: private, operations: [read] }
+  ])
+  @key(name: "commentLikesByCommentId", fields: ["commentId"])
+  @key(name: "commentLikesByUser", fields: ["userId", "createdAt"], queryField: "likesByUser") {
+  id: ID!
+  userId: ID!
+  postId: ID!
+  commentId: ID!
+  createdAt: String!
+  #user: User @connection(fields: ["userId"])
+  #post: Post @connection(fields: ["postId"])
+}
+
+#
+# フォロー関係
+#
+type Following @model
+  @auth(rules: [
+    { allow: owner, ownerField: "followerId" },
+    { allow: public, operations: [read] },
+    { allow: private, operations: [read] }
+  ])
+  @key(name: "followingByUserId", fields: ["followerId"]) {
+  id: ID
+  followerId: ID!
+  followingId: ID!
+  #follower: User @connection(fields: ["followerId"])
+  #following: User @connection(fields: ["followingId"])
+}

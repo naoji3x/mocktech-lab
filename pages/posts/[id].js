@@ -1,0 +1,91 @@
+import { Auth, Amplify, API, withSSRContext } from "aws-amplify";
+import { listPosts, getPost } from "../../src/graphql/queries";
+import { deletePost } from "../../src/graphql/mutations";
+import awsExports from "../../src/aws-exports";
+import { useRouter } from "next/router";
+import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
+
+Amplify.configure({ ...awsExports, ssr: true });
+
+export async function getStaticPaths() {
+  const SSR = withSSRContext();
+  const { data } = await SSR.API.graphql({ query: listPosts });
+  const paths = data.listPosts.items.map((post)=>({
+    params: { id: post.id }
+  }));
+
+  return {
+    fallback: true,
+    paths
+  }
+}
+
+export async function getStaticProps({ params }) {
+  const SSR = withSSRContext();
+  const { data } = await SSR.API.graphql({
+    query: getPost, 
+    variables: { 
+      id: params.id,
+    }
+  });
+
+  return {
+    props: {
+      post: data.getPost
+    }
+  };
+}
+
+const Post = ({ post }) => {
+  const router = useRouter();
+
+  if (router.isFallback) {
+    return (<div>Loading&hellip;</div>);
+  }
+
+  //
+  // 記事を削除
+  //
+  async function handleDelete() {
+    try {
+      // TODO: 更新系はLambdaでBackend側で実装。
+      await API.graphql({
+        authMode: "AMAZON_COGNITO_USER_POOLS",
+        query: deletePost,
+        variables: {
+          input: { id: post.id },
+        },
+      });
+
+      window.location.href = "/";
+    } catch ({ errors }) {
+      console.error(...errors);
+      throw new Error(errors[0].message);
+    }
+  }
+
+  const currentUser = Auth.currentAuthenticatedUser();
+
+  return (
+    <div>
+      <img src="../images/dummy.svg" alt="thumbnail"/>
+
+      <div>タイトル<br/>{post.title}</div>
+      <div>内容<br/>{post.content}</div>
+
+      <div>【詳細URL】</div>
+      <div>
+        <a href={post.url} target="_blank">
+          {post.url}
+        </a>
+      </div>
+
+      <AmplifyAuthenticator>
+        { (currentUser.username == post.authorId) ?
+          <button onClick={handleDelete}>削除</button>:"" }
+      </AmplifyAuthenticator>
+    </div>
+  );
+}
+
+export default Post;

@@ -16,7 +16,7 @@
           "defaultAuthentication": {
             "authenticationType": "API_KEY",
             "apiKeyConfig": {
-              "apiKeyExpirationDays": 90,
+              "apiKeyExpirationDays": 365,
               "description": "default"
             }
           },
@@ -26,10 +26,31 @@
               "userPoolConfig": {
                 "userPoolId": "authmocktechlab0adbeede"
               }
+            },
+            {
+              "authenticationType": "AWS_IAM"
             }
           ]
         }
       }
+    }
+  },
+  "function": {
+    "createPostAndKeywords": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda",
+      "dependsOn": [
+        {
+          "category": "api",
+          "resourceName": "MocktechLabGql",
+          "attributes": [
+            "GraphQLAPIIdOutput",
+            "GraphQLAPIEndpointOutput",
+            "GraphQLAPIKeyOutput"
+          ]
+        }
+      ]
     }
   }
 }

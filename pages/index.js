@@ -62,6 +62,8 @@ export default function Home({ posts = [], nextToken = null }) {
                 {(post.content.length > 150)?<span>&hellip;</span>:""}
               <br />
               {post.updatedAt}
+              <br />
+              {post.authorId}
             </li>
           ))}
         </ul>

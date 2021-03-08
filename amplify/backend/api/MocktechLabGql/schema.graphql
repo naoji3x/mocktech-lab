@@ -4,7 +4,7 @@
 type User @model(subscriptions: null)
   @key(fields: ["userId"])
   @auth(rules: [
-    { allow: owner, ownerField: "userId" },
+    { allow: owner, ownerField: "userId", provider: userPools, operations:[read, create]},
     { allow: private, operations: [read] }
     ]) {
   userId: ID!
@@ -23,17 +23,16 @@ type User @model(subscriptions: null)
 type Draft @model
   @key(name: "draftsByUserId", fields: ["authorId"])
   @auth(rules: [
-    { allow: owner ownerField: "authorId" },
-    { allow: private, operations: [read] }
+    { allow: owner ownerField: "authorId", provider: userPools, operations:[read, create]},
+    { allow: private, operations: [read] },
+    { allow: private, provider: iam ,operations:[create] }
   ]) {
   id: ID!
   authorId: ID!
-  #author: User @connection(fields: ["authorId"])
-
   title: String!
   content: String!
   images: [String!]! # TODO：S3で保存する場合はアクセス権限を設定要。
-  url: String!
+  url: String
 
   keywordValues: [String!]! # keywordは非正規化して持つ。
 }
@@ -44,18 +43,17 @@ type Draft @model
 type Post @model
   @key(name: "postsByUserId", fields: ["authorId"])
   @auth(rules: [
-    { allow: owner ownerField: "authorId" },
+    { allow: owner ownerField: "authorId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
-    { allow: private, operations: [read] }
+    { allow: private, operations: [read] },
+    { allow: private, provider: iam ,operations:[read, create] } #追加    
   ]) {
   id: ID!
   authorId: ID!
-  #author: User @connection(fields: ["authorId"])
-
   title: String!
   content: String!
   images: [String!]!
-  url: String!
+  url: String
 
   keywordValues: [String!]! # keywordは非正規化して持つ。
 
@@ -73,9 +71,10 @@ type Post @model
 #
 type Keyword @model
   @auth(rules: [
-    { allow: owner, ownerField: "authorId" },
+    { allow: owner ownerField: "authorId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
-    { allow: private, operations: [read] }
+    { allow: private, operations: [read] },
+    { allow: private, provider: iam ,operations:[create] } #追加    
   ]) {
   id: ID!
   authorId: ID!
@@ -88,17 +87,16 @@ type Keyword @model
 type Comment @model
   @key(name: "commentsByPostId", fields: ["postId"])
   @auth(rules: [
-    { allow: owner, ownerField: "authorId" },
+    { allow: owner, ownerField: "authorId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
+    { allow: private, provider: iam ,operations:[read, create] } #追加    
   ]) {
   id: ID!
   postId: ID!
   authorId: ID!
   text: String!
   likes: [CommentLike] @connection(keyName: "commentLikesByCommentId", fields: ["id"])
-  #author: User @connection(fields: ["authorId"])
-  #post: Post @connection(fields: ["postId"])
 }
 
 #
@@ -106,18 +104,17 @@ type Comment @model
 #
 type PostLike @model
   @auth(rules: [
-    { allow: owner, ownerField: "userId" },
+    { allow: owner, ownerField: "userId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
-  ])
+    { allow: private, provider: iam ,operations:[read, create] } #追加    
+ ])
   @key(name: "postLikesByPostId", fields: ["postId"])
   @key(name: "postLikesByUser", fields: ["userId", "createdAt"], queryField: "likesByUser") {
   id: ID!
   postId: ID!
   userId: ID!
   createdAt: String!
-  #user: User @connection(fields: ["userId"])
-  #post: Post @connection(fields: ["postId"])
 }
 
 #
@@ -125,9 +122,10 @@ type PostLike @model
 #
 type CommentLike @model
   @auth(rules: [
-    { allow: owner, ownerField: "userId" },
+    { allow: owner, ownerField: "userId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
+    { allow: private, provider: iam ,operations:[read, create] } #追加    
   ])
   @key(name: "commentLikesByCommentId", fields: ["commentId"])
   @key(name: "commentLikesByUser", fields: ["userId", "createdAt"], queryField: "likesByUser") {
@@ -136,8 +134,6 @@ type CommentLike @model
   postId: ID!
   commentId: ID!
   createdAt: String!
-  #user: User @connection(fields: ["userId"])
-  #post: Post @connection(fields: ["postId"])
 }
 
 #
@@ -145,14 +141,29 @@ type CommentLike @model
 #
 type Following @model
   @auth(rules: [
-    { allow: owner, ownerField: "followerId" },
+    { allow: owner, ownerField: "followerId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
+    { allow: private, provider: iam ,operations:[read, create] } #追加    
   ])
   @key(name: "followingByUserId", fields: ["followerId"]) {
   id: ID
   followerId: ID!
   followingId: ID!
-  #follower: User @connection(fields: ["followerId"])
-  #following: User @connection(fields: ["followingId"])
+}
+
+#
+# Postとキーワードを作成する。
+#
+input PostInput {
+  title: String!
+  content: String!
+  keywordValues: [String!]
+  url: String
+}
+
+type Mutation {
+  createPostAndKeywords(input: PostInput!): Post
+    @function(name: "createPostAndKeywords-${env}")
+    @auth(rules: [{ allow: private, provider: userPools }])
 }

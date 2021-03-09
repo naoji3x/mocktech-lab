@@ -6,7 +6,6 @@
 	REGION
 Amplify Params - DO NOT EDIT */
 
-
 const AWSAppSyncClient = require('aws-appsync').default;
 const gql = require('graphql-tag');
 global.fetch = require('node-fetch');
@@ -17,11 +16,6 @@ exports.handler = async (event, context, callback) => {
   console.log(event);
   let env;
   let graphql_auth;
-
-  // エラー処理の例
-  if(event.arguments.input.content.length > 4000) {
-      callback('content length is over 4000', null);
-  }
 
   if ('AWS_EXECUTION_ENV' in process.env && process.env.AWS_EXECUTION_ENV.startsWith('AWS_Lambda_')) {
       //for cloud env
@@ -62,45 +56,46 @@ exports.handler = async (event, context, callback) => {
   }
 
   try {
-    // create a new post
-    const res = await graphqlClient.mutate({
-      mutation: gql(createPost),
-      variables: {
-        input: {
-          authorId: event.identity.username,
-          title: event.arguments.input.title,
-          content: event.arguments.input.content,
-          url: event.arguments.input.url,
-          images: [],
-          keywordValues: []
-        }
-      }
+    // postId
+    const postId = event.arguments.postId;
+
+    // get post
+    var res = await graphqlClient.query({
+      query: gql(getPost),
+      fetchPolicy: 'network-only',
+      variables: { id: postId }
+    });
+
+    // 自分が作ったPostでない場合はnullを返す。
+    const post = res.data.getPost;
+    if(post == null || post.authorId != event.identity.username) {
+      return null;
+    }
+
+    // TODO: delete comments
+    // TODO: delete likes
+    // TODO: delete images
+
+    // delete post
+    var res = await graphqlClient.mutate({
+      mutation: gql(deletePost),
+      variables: { input: { id: postId } }
     });
 
     console.log(res);
-    const post = res.data.createPost;
-    return post;
+    return res.data.deletePost.id;
   }
   catch (err) {
     console.log('error deleting a post : ', err);
   }
 };
 
-const createPost = /* GraphQL */ `
-  mutation CreatePost(
-    $input: CreatePostInput!
-    $condition: ModelPostConditionInput
-  ) {
-    createPost(input: $input, condition: $condition) {
+const getPost = /* GraphQL */ `
+  query GetPost($id: ID!) {
+    getPost(id: $id) {
       id
       authorId
-      title
-      content
       images
-      url
-      keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -108,5 +103,14 @@ const createPost = /* GraphQL */ `
         nextToken
       }
     }
+  }
+`;
+
+const deletePost = /* GraphQL */ `
+  mutation DeletePost(
+    $input: DeletePostInput!
+    $condition: ModelPostConditionInput
+  ) {
+    deletePost(input: $input, condition: $condition) { id }
   }
 `;

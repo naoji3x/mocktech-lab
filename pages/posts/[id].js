@@ -1,6 +1,6 @@
 import { Auth, Amplify, API, withSSRContext } from "aws-amplify";
 import { listPosts, getPost } from "../../src/graphql/queries";
-import { deletePost } from "../../src/graphql/mutations";
+import { deletePostAndConnectedData } from "../../src/graphql/mutations";
 import awsExports from "../../src/aws-exports";
 import { useRouter } from "next/router";
 import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
@@ -51,13 +51,11 @@ const Post = ({ post }) => {
     if(currentUser.username != post.authorId) return;
 
     try {
-      // TODO: 更新系はLambdaでBackend側で実装。
+      // 更新系はLambdaのBackend側を呼び出し
       await API.graphql({
         authMode: "AMAZON_COGNITO_USER_POOLS",
-        query: deletePost,
-        variables: {
-          input: { id: post.id },
-        },
+        query: deletePostAndConnectedData,
+        variables: { postId: post.id }
       });
 
       window.location.href = "/";

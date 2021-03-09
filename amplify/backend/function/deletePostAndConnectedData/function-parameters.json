@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "api": {
+      "MocktechLabGql": [
+        "Query",
+        "Mutation"
+      ]
+    }
+  },
+  "lambdaLayers": []
+}

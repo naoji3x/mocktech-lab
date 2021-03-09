@@ -1,8 +1,9 @@
 import Head from 'next/head'
 import Link from 'next/Link'
 import styles from '../styles/Home.module.css'
-import { Auth, Amplify, withSSRContext } from "aws-amplify";
-import { AmplifyAuthenticator, AmplifySignOut, AmplifySignIn } from "@aws-amplify/ui-react";
+import { Amplify, withSSRContext } from "aws-amplify";
+import { AmplifySignOut, AmplifySignIn } from "@aws-amplify/ui-react";
+import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import awsExports from "../src/aws-exports";
 import { listPosts } from "../src/graphql/queries";
 import React from 'react';
@@ -35,6 +36,15 @@ export async function getServerSideProps({ req }) {
 // TODO: 一覧を表示する最低限の実装です。
 //
 export default function Home({ posts = [], nextToken = null }) {
+  const [authState, setAuthState] = React.useState();
+  const [user, setUser] = React.useState();
+
+  React.useEffect(() => {
+    return onAuthUIStateChange((nextAuthState, authData) => {
+      setAuthState(nextAuthState);
+      setUser(authData)
+    });
+  }, []);
 
   return (
     <div className={styles.container}>
@@ -45,7 +55,10 @@ export default function Home({ posts = [], nextToken = null }) {
 
       <main className={styles.main}>
         <div>
-          <AmplifySignOut />
+          {
+            (authState == AuthState.SignedIn)?
+            <AmplifySignOut />:<AmplifySignIn />
+          }
         </div>
         <br/>
         <Link href="/posts/new" passHref>

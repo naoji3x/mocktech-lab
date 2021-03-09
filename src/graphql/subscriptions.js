@@ -1,51 +1,6 @@
 /* eslint-disable */
 // this is an auto generated file. This will be overwritten
 
-export const onCreateDraft = /* GraphQL */ `
-  subscription OnCreateDraft {
-    onCreateDraft {
-      id
-      authorId
-      title
-      content
-      images
-      url
-      keywordValues
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const onUpdateDraft = /* GraphQL */ `
-  subscription OnUpdateDraft {
-    onUpdateDraft {
-      id
-      authorId
-      title
-      content
-      images
-      url
-      keywordValues
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const onDeleteDraft = /* GraphQL */ `
-  subscription OnDeleteDraft {
-    onDeleteDraft {
-      id
-      authorId
-      title
-      content
-      images
-      url
-      keywordValues
-      createdAt
-      updatedAt
-    }
-  }
-`;
 export const onCreatePost = /* GraphQL */ `
   subscription OnCreatePost {
     onCreatePost {
@@ -251,39 +206,6 @@ export const onDeleteCommentLike = /* GraphQL */ `
       userId
       postId
       commentId
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const onCreateFollowing = /* GraphQL */ `
-  subscription OnCreateFollowing {
-    onCreateFollowing {
-      id
-      followerId
-      followingId
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const onUpdateFollowing = /* GraphQL */ `
-  subscription OnUpdateFollowing {
-    onUpdateFollowing {
-      id
-      followerId
-      followingId
-      createdAt
-      updatedAt
-    }
-  }
-`;
-export const onDeleteFollowing = /* GraphQL */ `
-  subscription OnDeleteFollowing {
-    onDeleteFollowing {
-      id
-      followerId
-      followingId
       createdAt
       updatedAt
     }

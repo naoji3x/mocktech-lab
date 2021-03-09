@@ -1,41 +1,35 @@
 #
 # ユーザー
 #
-type User @model(subscriptions: null)
-  @key(fields: ["userId"])
-  @auth(rules: [
-    { allow: owner, ownerField: "userId", provider: userPools, operations:[read, create]},
-    { allow: private, operations: [read] }
-    ]) {
-  userId: ID!
-  name: String!
-  description: String!
-  posts: [Post] @connection(keyName: "postsByUserId", fields: ["userId"])
-  drafts: [Draft] @connection(keyName: "draftsByUserId", fields: ["userId"])
-  following: [Following] @connection(keyName: "followingByUserId", fields: ["userId"])
-}
+#type User @model(subscriptions: null)
+#  @key(fields: ["userId"])
+#  @auth(rules: [
+#    { allow: public, operations: [read] },
+#    { allow: private, operations: [read] }
+#    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
+#    ]) {
+#  userId: ID!
+#  name: String!
+#  description: String!
+#  posts: [Post] @connection(keyName: "postsByUserId", fields: ["userId"])
+#  drafts: [Draft] @connection(keyName: "draftsByUserId", fields: ["userId"])
+#  following: [Following] @connection(keyName: "followingByUserId", fields: ["userId"])
+#}
 
 #
-# ドラフト（作成途中、非公開の投稿）。
-# テーブルを分けて作成者以外へは非公開。コメントもキーワードもなし。
-# 検索にも表示されない(ように実装)。
+# フォロー関係
 #
-type Draft @model
-  @key(name: "draftsByUserId", fields: ["authorId"])
-  @auth(rules: [
-    { allow: owner ownerField: "authorId", provider: userPools, operations:[read, create]},
-    { allow: private, operations: [read] },
-    { allow: private, provider: iam ,operations:[create] }
-  ]) {
-  id: ID!
-  authorId: ID!
-  title: String!
-  content: String!
-  images: [String!]! # TODO：S3で保存する場合はアクセス権限を設定要。
-  url: String
-
-  keywordValues: [String!]! # keywordは非正規化して持つ。
-}
+#type Following @model
+#  @auth(rules: [
+#    { allow: public, operations: [read] },
+#    { allow: private, operations: [read] }
+#    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
+#  ])
+#  @key(name: "followingByUserId", fields: ["followerId"]) {
+#  id: ID
+#  followerId: ID!
+#  followingId: ID!
+#}
 
 #
 # 投稿
@@ -43,10 +37,9 @@ type Draft @model
 type Post @model
   @key(name: "postsByUserId", fields: ["authorId"])
   @auth(rules: [
-    { allow: owner ownerField: "authorId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] },
-    { allow: private, provider: iam ,operations:[read, create] } #追加    
+    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
   ]) {
   id: ID!
   authorId: ID!
@@ -57,8 +50,8 @@ type Post @model
 
   keywordValues: [String!]! # keywordは非正規化して持つ。
 
-  # TODO: 以下パフォーマンス対策で要検討。@connectionでリンクするとcomments, likesを読みに行くので、
-  # 遅くなる＋RCUを消費してしまう。
+  # TODO: 以下パフォーマンス対策で要検討。@connectionでリンクするとcomments, 
+  # likesを読みに行くので、遅くなる＋料金が高くなる。
   #commentUserNames: [String!]! # コメントしたユーザー名は非正規化して持つ。
   #likedUserNames: [String!]! # いいねしたユーザーは非正規化して持つ。
 
@@ -71,7 +64,6 @@ type Post @model
 #
 type Keyword @model
   @auth(rules: [
-    { allow: owner ownerField: "authorId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] },
     { allow: private, provider: iam ,operations:[create] } #追加    
@@ -82,15 +74,36 @@ type Keyword @model
 }
 
 #
+# ドラフト（作成途中、非公開の投稿）。
+# テーブルを分けて作成者以外へは非公開。コメントもキーワードもなし。
+# 検索にも表示されない(ように実装)。
+#
+#type Draft @model
+#  @key(name: "draftsByUserId", fields: ["authorId"])
+#  @auth(rules: [
+#    { allow: public, operations: [read] },
+#    { allow: private, operations: [read] },
+#    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
+#  ]) {
+#  id: ID!
+#  authorId: ID!
+#  title: String!
+#  content: String!
+#  images: [String!]! # TODO：S3で保存する場合はアクセス権限を設定要。
+#  url: String
+#
+#  keywordValues: [String!]! # keywordは非正規化して持つ。
+#}
+
+#
 # コメント
 #
 type Comment @model
   @key(name: "commentsByPostId", fields: ["postId"])
   @auth(rules: [
-    { allow: owner, ownerField: "authorId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
-    { allow: private, provider: iam ,operations:[read, create] } #追加    
+    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
   ]) {
   id: ID!
   postId: ID!
@@ -104,10 +117,9 @@ type Comment @model
 #
 type PostLike @model
   @auth(rules: [
-    { allow: owner, ownerField: "userId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
-    { allow: private, provider: iam ,operations:[read, create] } #追加    
+    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
  ])
   @key(name: "postLikesByPostId", fields: ["postId"])
   @key(name: "postLikesByUser", fields: ["userId", "createdAt"], queryField: "likesByUser") {
@@ -122,10 +134,9 @@ type PostLike @model
 #
 type CommentLike @model
   @auth(rules: [
-    { allow: owner, ownerField: "userId", provider: userPools, operations:[read, create]},
     { allow: public, operations: [read] },
     { allow: private, operations: [read] }
-    { allow: private, provider: iam ,operations:[read, create] } #追加    
+    { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
   ])
   @key(name: "commentLikesByCommentId", fields: ["commentId"])
   @key(name: "commentLikesByUser", fields: ["userId", "createdAt"], queryField: "likesByUser") {
@@ -137,23 +148,7 @@ type CommentLike @model
 }
 
 #
-# フォロー関係
-#
-type Following @model
-  @auth(rules: [
-    { allow: owner, ownerField: "followerId", provider: userPools, operations:[read, create]},
-    { allow: public, operations: [read] },
-    { allow: private, operations: [read] }
-    { allow: private, provider: iam ,operations:[read, create] } #追加    
-  ])
-  @key(name: "followingByUserId", fields: ["followerId"]) {
-  id: ID
-  followerId: ID!
-  followingId: ID!
-}
-
-#
-# Postとキーワードを作成する。
+# Lambda関連
 #
 input PostInput {
   title: String!
@@ -163,7 +158,13 @@ input PostInput {
 }
 
 type Mutation {
+  # Postとキーワードを作成する。
   createPostAndKeywords(input: PostInput!): Post
     @function(name: "createPostAndKeywords-${env}")
+    @auth(rules: [{ allow: private, provider: userPools }])
+
+  # Postと関連データを削除する。
+  deletePostAndConnectedData(postId: ID!): ID
+    @function(name: "deletePostAndConnectedData-${env}")
     @auth(rules: [{ allow: private, provider: userPools }])
 }

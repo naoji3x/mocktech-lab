@@ -1,7 +1,7 @@
 import { Formik, Field, Form, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Auth, Amplify, API, } from "aws-amplify";
-import { createPost } from "../../src/graphql/mutations";
+import { createPostAndKeywords } from "../../src/graphql/mutations";
 import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
 import awsExports from "../../src/aws-exports";
 
@@ -19,20 +19,18 @@ async function handleCreatePost(post) {
     // この実装だとusernameを偽装できてしまうのでNG。
     var { data } = await API.graphql({
       authMode: "AMAZON_COGNITO_USER_POOLS",
-      query: createPost,
+      query: createPostAndKeywords,
       variables: {
         input: {
-          authorId: currentUser.username,
           title: post.title,
           content: post.content,
           url: post.url,
-          images: [],
           keywordValues: []
         }
       },
     });
 
-    const postID = data.createPost.id;
+    const postID = data.createPostAndKeywords.id;
 
     window.location.href = `/posts/${postID}`;
   } catch ({ errors }) {

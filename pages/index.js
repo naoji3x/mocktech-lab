@@ -2,7 +2,7 @@ import Head from 'next/head'
 import Link from 'next/Link'
 import styles from '../styles/Home.module.css'
 import { Amplify, withSSRContext } from "aws-amplify";
-import { AuthContext } from '../context/auth-context';
+import { AuthStateContext } from '../context/auth-state-context';
 import { AmplifySignOut, AmplifySignIn } from "@aws-amplify/ui-react";
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import { useContext, useEffect } from 'react';
@@ -37,28 +37,10 @@ export async function getServerSideProps({ req }) {
 // TODO: 一覧を表示する最低限の実装です。
 //
 export default function Home({ posts = [], nextToken = null }) {
-  const [authState, user] = useContext(AuthContext);
-  /*
-  const [setAuthState, setUser] = useContext(AuthContext);
+  const authState = useContext(AuthStateContext);
 
-  useEffect(() => {
-    return onAuthUIStateChange((nextAuthState, authData) => {
-      setAuthState(nextAuthState);
-      setUser(authData)
-    });
-  }, []);*/
-
-  /*
-  <div>
-  {
-    authState === AuthState.SignedIn && user?
-    (<AmplifySignOut />):(<AmplifySignIn />)
-  }
-  </div>
-  */
+  console.log(authState);
   
-  //console.log(authState + ":" + user);
-
   return (
     <div className={styles.container}>
       <Head>
@@ -67,6 +49,9 @@ export default function Home({ posts = [], nextToken = null }) {
       </Head>
 
       <main className={styles.main}>
+        <div>
+          { authState === "SignedIn"?<AmplifySignOut />:<AmplifySignIn /> }
+        </div>
         <br/>
         <Link href="/posts/new" passHref>
           <button>新規投稿</button>

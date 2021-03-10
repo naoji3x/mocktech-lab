@@ -2,35 +2,13 @@ import '../styles/globals.css'
 import Amplify from "aws-amplify";
 import { AmplifyAuthenticator, AmplifySignUp } from '@aws-amplify/ui-react';
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
-import { AuthContext, useAuthContext } from '../context/auth-context';
 import awsExports from "../src/aws-exports";
-import { createContext, useContext, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { AuthStateContext } from '../context/auth-state-context';
 
 Amplify.configure({ ...awsExports, ssr: true });
 
 function MyApp({ Component, pageProps }) {
-  /*
-  //const [authState, user] = useContext(AuthContext);
-  //const [setAuthState, setUser] = useContext(AuthContext);
-  const [authState, setAuthState] = useState();
-  const [user, setUser] = useState();
-
-  useEffect(() => {
-    console.log("Here");
-    return onAuthUIStateChange((nextAuthState, authData) => {
-      setAuthState(nextAuthState);
-      setUser(authData)
-    });
-  }, []);
-
-  console.log(authState + ":" + user);
-  return (
-    <AuthContext.Provider value={useAuthContext()}>
-      <Component {...pageProps} />
-    </AuthContext.Provider>
-  );
-  */
-
   const [authState, setAuthState] = useState();
   const [user, setUser] = useState();
 
@@ -43,19 +21,18 @@ function MyApp({ Component, pageProps }) {
   }, []);
 
   console.log(authState + ":" + user);
-  
-  //return <Component {...pageProps} />
-  /*
-  return (
-    <AuthContext.Provider value={useAuthContext()}>
-      <Component {...pageProps} />
-    </AuthContext.Provider>
-  );
-  */
 
   return authState === AuthState.SignedIn && user ? (
-    <Component {...pageProps} />
+    <AuthStateContext.Provider value={"SignedIn"}>
+      <Component {...pageProps} />
+    </AuthStateContext.Provider>
     ) : (
+      <AuthStateContext.Provider value={"SignedOut"}>
+      <Component {...pageProps} />
+    </AuthStateContext.Provider>
+    );
+
+      /*
     <AmplifyAuthenticator>
       <AmplifySignUp
         slot="sign-up"
@@ -66,7 +43,7 @@ function MyApp({ Component, pageProps }) {
         ]}
       />
     </AmplifyAuthenticator>
-  );
+  );*/
 }
 
 export default MyApp

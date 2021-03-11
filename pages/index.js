@@ -4,10 +4,11 @@ import styles from '../styles/Home.module.css'
 import { Amplify, Auth, withSSRContext } from "aws-amplify";
 import { AuthStateContext } from '../context/auth-state-context';
 import { AmplifySignOut, AmplifySignIn } from "@aws-amplify/ui-react";
-import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
+//import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import { useContext, useEffect } from 'react';
 import awsExports from "../src/aws-exports";
 import { listPosts } from "../src/graphql/queries";
+import Layout from '../containers/layout';
 
 Amplify.configure({ ...awsExports, ssr: true });
 
@@ -37,15 +38,43 @@ export async function getServerSideProps({ req }) {
 // TODO: 一覧を表示する最低限の実装です。
 //
 export default function Home({ posts = [], nextToken = null }) {
-  const authState = useContext(AuthStateContext);
+  //const authState = useContext(AuthStateContext);
 
+  /*
   async function isSignIn() {
     const session = await Auth.currentSession();
     return session.data?true:false;
   }
+  */
 
-  console.log(authState);
+  //console.log(authState);
   
+
+  return (
+    <Layout>
+        <br/>
+        <Link href="/posts/new" passHref>
+          <button>新規投稿</button>
+        </Link>
+        <ul>
+          {posts.map((post) => (
+            <li key={post.id}>
+              <Link href="/posts/[id]" as={`/posts/${post.id}`}>
+                <a>{post.title}</a>
+              </Link>
+              <br />
+                {post.content.substr(0, 150)}
+                {(post.content.length > 150)?<span>&hellip;</span>:""}
+              <br />
+              {post.updatedAt}
+              <br />
+              {post.authorId}
+            </li>
+          ))}
+        </ul>
+    </Layout>
+  )
+  /*
   return (
     <div className={styles.container}>
       <Head>
@@ -85,4 +114,5 @@ export default function Home({ posts = [], nextToken = null }) {
       </footer>
     </div>
   )
+  */
 }

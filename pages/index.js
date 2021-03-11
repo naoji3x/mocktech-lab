@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/Link'
 import styles from '../styles/Home.module.css'
-import { Amplify, withSSRContext } from "aws-amplify";
+import { Amplify, Auth, withSSRContext } from "aws-amplify";
 import { AuthStateContext } from '../context/auth-state-context';
 import { AmplifySignOut, AmplifySignIn } from "@aws-amplify/ui-react";
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
@@ -39,6 +39,11 @@ export async function getServerSideProps({ req }) {
 export default function Home({ posts = [], nextToken = null }) {
   const authState = useContext(AuthStateContext);
 
+  async function isSignIn() {
+    const session = await Auth.currentSession();
+    return session.data?true:false;
+  }
+
   console.log(authState);
   
   return (
@@ -50,7 +55,9 @@ export default function Home({ posts = [], nextToken = null }) {
 
       <main className={styles.main}>
         <div>
-          { authState === "SignedIn"?<AmplifySignOut />:<AmplifySignIn /> }
+          { //authState === "SignedIn"?<AmplifySignOut />:<AmplifySignIn /> 
+            isSignIn()?<AmplifySignOut />:<AmplifySignIn />
+          }
         </div>
         <br/>
         <Link href="/posts/new" passHref>

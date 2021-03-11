@@ -1,5 +1,7 @@
 import Head from "next/head";
 import { useEffect, useState } from 'react';
+import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
+import { AmplifySignOut, AmplifySignIn } from "@aws-amplify/ui-react";
 
 export default function Layout({ children }) {
   const [authState, setAuthState] = useState();

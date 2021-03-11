@@ -2,10 +2,11 @@ import Head from "next/head";
 import Link from 'next/Link'
 //import { useEffect, useState } from 'react';
 //import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
-import { AmplifyAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
+import { AmplifyAuthenticator, AmplifySignIn, AmplifySignUp, AmplifySignOut, AmplifyGreetings } from "@aws-amplify/ui-react";
 import { Authenticator, SignIn, SignUp, SignOut, ConfirmSignUp, Greetings } from 'aws-amplify-react';
 import { createContext, useContext } from 'react';
 import { AuthStateContext, useAuthStateContext } from "../context/auth-state-context";
+import Auth from "@aws-amplify/auth";
 
 const AlwaysOn = (props) => {
   /*
@@ -39,18 +40,26 @@ export default function Layout({ children }) {
     }
   }
 
-  return (
+/*  
+<Authenticator hideDefault={true} onStateChange={handleAuthStateChange}>
+  <AlwaysOn/>
+  <SignIn/>
+  <SignUp/>
+  <ConfirmSignUp/>
+</Authenticator>
+*/
+
+return (
     <div>
       <Head>
         <title>MockTech Lab</title>
       </Head>
 
-      <Authenticator hideDefault={true} onStateChange={handleAuthStateChange}>
-        <AlwaysOn/>
-        <SignIn/>
-        <SignUp/>
-        <ConfirmSignUp/>
-      </Authenticator>
+      <AmplifyAuthenticator>
+        <AmplifySignIn slot="federated-buttons"/>
+        <AmplifySignOut/>
+        <AmplifyGreetings username={Auth.currentAuthenticatedUser()}/>
+      </AmplifyAuthenticator>
 
       <main>{children}</main>
 

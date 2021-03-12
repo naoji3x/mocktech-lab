@@ -35,6 +35,7 @@
 # 投稿
 #
 type Post @model
+  @searchable
   @key(name: "postsByUserId", fields: ["authorId"])
   @auth(rules: [
     { allow: public, operations: [read] },
@@ -42,6 +43,8 @@ type Post @model
     { allow: private, provider: iam ,operations:[read, create, delete] } #追加    
   ]) {
   id: ID!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
   authorId: ID!
   title: String!
   content: String!

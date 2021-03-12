@@ -58,7 +58,7 @@ const Post = ({ post }) => {
         variables: { postId: post.id }
       });
 
-      window.location.href = "/";
+      window.location.href = "/home";
     } catch ({ errors }) {
       console.error(...errors);
       throw new Error(errors[0].message);

@@ -5,14 +5,14 @@ export const onCreatePost = /* GraphQL */ `
   subscription OnCreatePost {
     onCreatePost {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -26,14 +26,14 @@ export const onUpdatePost = /* GraphQL */ `
   subscription OnUpdatePost {
     onUpdatePost {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -47,14 +47,14 @@ export const onDeletePost = /* GraphQL */ `
   subscription OnDeletePost {
     onDeletePost {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }

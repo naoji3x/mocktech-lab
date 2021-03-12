@@ -5,14 +5,14 @@ export const getPost = /* GraphQL */ `
   query GetPost($id: ID!) {
     getPost(id: $id) {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -31,16 +31,47 @@ export const listPosts = /* GraphQL */ `
     listPosts(filter: $filter, limit: $limit, nextToken: $nextToken) {
       items {
         id
+        createdAt
+        updatedAt
         authorId
         title
         content
         images
         url
         keywordValues
-        createdAt
-        updatedAt
       }
       nextToken
+    }
+  }
+`;
+export const searchPosts = /* GraphQL */ `
+  query SearchPosts(
+    $filter: SearchablePostFilterInput
+    $sort: SearchablePostSortInput
+    $limit: Int
+    $nextToken: String
+    $from: Int
+  ) {
+    searchPosts(
+      filter: $filter
+      sort: $sort
+      limit: $limit
+      nextToken: $nextToken
+      from: $from
+    ) {
+      items {
+        id
+        createdAt
+        updatedAt
+        authorId
+        title
+        content
+        images
+        url
+        keywordValues
+      }
+      nextToken
+      total
     }
   }
 `;

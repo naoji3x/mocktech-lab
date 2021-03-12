@@ -8,14 +8,14 @@ export const updatePost = /* GraphQL */ `
   ) {
     updatePost(input: $input, condition: $condition) {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -107,14 +107,14 @@ export const createPost = /* GraphQL */ `
   ) {
     createPost(input: $input, condition: $condition) {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -131,14 +131,14 @@ export const deletePost = /* GraphQL */ `
   ) {
     deletePost(input: $input, condition: $condition) {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }
@@ -260,14 +260,14 @@ export const createPostAndKeywords = /* GraphQL */ `
   mutation CreatePostAndKeywords($input: PostInput!) {
     createPostAndKeywords(input: $input) {
       id
+      createdAt
+      updatedAt
       authorId
       title
       content
       images
       url
       keywordValues
-      createdAt
-      updatedAt
       comments {
         nextToken
       }

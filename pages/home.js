@@ -7,28 +7,31 @@ import { Amplify, withSSRContext } from "aws-amplify";
 import { AmplifyAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import awsExports from "../src/aws-exports";
-import { listPosts } from "../src/graphql/queries";
+import { useState } from 'react';
+import { searchPosts } from "../src/graphql/queries";
 
 Amplify.configure({ ...awsExports, ssr: true });
-
-//
-// TODO: この実装だと最初の100件を取得するだけなので、
-// 以降はnextTokenを使用して取ってくる必要あり。
-// また、特に表示順序は指定していないので修正要。
-//
-export async function getServerSideProps({ req }) {
+export async function getServerSideProps({ req, query = { phrase: null, nextToken: null } }) {
   const SSR = withSSRContext({ req });
+
+  console.log(JSON.stringify(query));
+  const filter = (query.phrase == null || query.phrase=='')?
+    null:{ content: { matchPhrase: query.phrase } };
+
   const response = await SSR.API.graphql({
-    query: listPosts, 
-    variables: {
-      limit: 100
-    }
-  });
+    query: searchPosts, variables: {
+      filter: filter,
+//      sort: { direction: "desc", field: "updatedAt" }, ソートがうまくいかない。
+      limit: 20,
+      nextToken: query.nextToken,
+  }});
+
+  console.log(JSON.stringify(response.data.searchPosts.items));
 
   return {
     props: {
-      posts: response.data.listPosts.items,
-      nextToken: response.data.listPosts.nextToken
+      posts: response.data.searchPosts.items,
+      nextToken: response.data.searchPosts.nextToken
     },
   };
 }
@@ -38,6 +41,7 @@ export async function getServerSideProps({ req }) {
 //
 export default function Home({ posts = [], nextToken = null }) {
   const router = useRouter();
+  const [phrase, setPhrase] = useState(null);
 
   // サインアウトしたときに一覧表示に飛ばす。
   useEffect(() => {
@@ -60,9 +64,16 @@ export default function Home({ posts = [], nextToken = null }) {
         </Head>
 
         <main className={styles.main}>
-          <Link href="/posts/new" passHref>
-            <button>新規投稿</button>
-          </Link>
+          <input 
+            type="text" 
+            name="keyword"
+            onChange={e => setPhrase(e.target.value)}
+            placeholder="キーワードを入力（例：zoom ）"
+          />
+          <button onClick={()=>router.push(`/home/?phrase=${phrase}&nextToken=${null}`)}>
+            Search
+          </button>
+
           <ul>
             {posts.map((post) => (
               <li key={post.id}>
@@ -79,6 +90,10 @@ export default function Home({ posts = [], nextToken = null }) {
               </li>
             ))}
           </ul>
+
+          <Link href="/posts/new" passHref>
+            <button>新規投稿</button>
+          </Link>
         </main>
         <footer className={styles.footer}>
           2021 MockTech Lab all right reserved.
@@ -87,3 +102,4 @@ export default function Home({ posts = [], nextToken = null }) {
     </AmplifyAuthenticator>
   )
 }
+

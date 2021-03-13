@@ -17,7 +17,7 @@ frontend:
         # Install the Serverless Framework CLI
         - npm install yarn
         - yarn
-        - yarn add serverless
+        - yarn global add serverless
         # Copy any existing files from a previous Serverless deployment into our working directory
         - aws s3 cp s3://mocktech-lab-serverless-build/${AWS_BRANCH}/.serverless ./environments/${AWS_BRANCH}/.serverless/ --recursive
     build:

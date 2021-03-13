@@ -11,7 +11,7 @@ frontend:
   phases:
     preBuild:
       commands: 
-        - npm ci
+        - npm install && npm ci
         # Install the Serverless Framework CLI
         - npm i -g serverless
         # Copy any existing files from a previous Serverless deployment into our working directory

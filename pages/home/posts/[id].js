@@ -1,10 +1,10 @@
-import Link from 'next/link'
-import { Auth, Amplify, withSSRContext } from "aws-amplify";
-import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
+import { Auth, Amplify, API, withSSRContext } from "aws-amplify";
 import { listPosts, getPost } from "../../../src/graphql/queries";
 import { deletePostAndConnectedData } from "../../../src/graphql/mutations";
 import awsExports from "../../../src/aws-exports";
 import { useRouter } from "next/router";
+import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
+import Link from "next/link";
 
 Amplify.configure({ ...awsExports, ssr: true });
 
@@ -51,9 +51,6 @@ const Post = ({ post }) => {
     const currentUser = await Auth.currentAuthenticatedUser();
     if(currentUser.username != post.authorId) return;
 
-    console.log(JSON.stringify(post));
-
-
     try {
       // 更新系はLambdaのBackend側を呼び出し
       await API.graphql({
@@ -62,12 +59,10 @@ const Post = ({ post }) => {
         variables: { postId: post.id }
       });
 
-      //window.location.href = "/home";
-      router.push("/home");
+      window.location.href = "/home";
     } catch ({ errors }) {
-      console.log(JSON.stringify(errors));
-      //console.error(...errors);
-      //throw new Error(errors[0].message);
+      console.error(...errors);
+      throw new Error(errors[0].message);
     }
   }
 
@@ -85,10 +80,9 @@ const Post = ({ post }) => {
             {post.url}
           </a>
         </div>
-
-          <button onClick={handleDelete}>削除</button>
-          <br/>
-          <Link href="/home">Home</Link>
+        <button onClick={handleDelete}>削除</button>
+        <br/>
+        <Link href="/home">Home</Link>
       </div>
     </AmplifyAuthenticator>
   );

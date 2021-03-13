@@ -1,9 +1,9 @@
 import { Formik, Field, Form, ErrorMessage } from 'formik'
 import * as Yup from 'yup'
 import { Auth, Amplify, API, } from "aws-amplify";
-import { createPostAndKeywords } from "../../src/graphql/mutations";
+import { createPostAndKeywords } from "../../../src/graphql/mutations";
 import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
-import awsExports from "../../src/aws-exports";
+import awsExports from "../../../src/aws-exports";
 
 Amplify.configure({ ...awsExports, ssr: true });
 
@@ -32,7 +32,7 @@ async function handleCreatePost(post) {
 
     const postID = data.createPostAndKeywords.id;
 
-    window.location.href = `/posts/${postID}`;
+    window.location.href = `/home/posts/${postID}`;
   } catch ({ errors }) {
     console.error(...errors);
     throw new Error(errors[0].message);

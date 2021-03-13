@@ -68,7 +68,7 @@ export default function Index({ posts = [], nextToken = null }) {
           onChange={e => setPhrase(e.target.value)}
           placeholder="キーワードを入力（例：zoom ）"
         />
-        <button onClick={()=>router.push(`/posts/?phrase=${phrase}&nextToken=${null}`)}>
+        <button onClick={()=>router.push(`/?phrase=${phrase}&nextToken=${null}`)}>
           Search
         </button>
 

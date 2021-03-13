@@ -40,20 +40,12 @@ export async function getServerSideProps({ req }) {
 
 export default function Home({ posts = [], nextToken = null }) {
   const router = useRouter();
-  //const [user, setCurrentUser] = useState(null);
 
   // サインアウトしたときに一覧表示に飛ばす。一瞬、Sign-in画面が表示されるのでもっといい実装がありそう。
   useEffect(() => {
-    /*
-    const init = async() => {
-      setCurrentUser(await Auth.currentAuthenticatedUser());
-    }
-    init()
-    */
-
     return onAuthUIStateChange((nextAuthState, authData) => {
       if(nextAuthState === AuthState.SignedOut) {
-        router.push('/posts');
+        router.push('/');
       }
     });
   }, []);
@@ -89,7 +81,7 @@ export default function Home({ posts = [], nextToken = null }) {
             ))}
           </ul>
 
-          <Link href="/posts/new" passHref>
+          <Link href="/home/posts/new" passHref>
             <button>新規投稿</button>
           </Link>
         </main>

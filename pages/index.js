@@ -2,8 +2,6 @@ import { Amplify } from "aws-amplify";
 import { Authenticator } from 'aws-amplify-react';
 import HomeOrPosts from "../components/home-or-posts";
 import awsExports from "../src/aws-exports";
-import Home from "./home";
-import Posts from "./posts";
 Amplify.configure({...awsExports });
 
 //

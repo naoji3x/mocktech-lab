@@ -1,11 +1,13 @@
-import { Auth, Amplify, API, withSSRContext } from "aws-amplify";
+import { Amplify, withSSRContext } from "aws-amplify";
 import { listPosts, getPost } from "../../src/graphql/queries";
-import { deletePostAndConnectedData } from "../../src/graphql/mutations";
 import awsExports from "../../src/aws-exports";
 import { useRouter } from "next/router";
-import { AmplifyAuthenticator } from "@aws-amplify/ui-react";
 
 Amplify.configure({ ...awsExports, ssr: true });
+
+//
+// SSRで実装
+//
 
 export async function getStaticPaths() {
   const SSR = withSSRContext();
@@ -43,28 +45,6 @@ const Post = ({ post }) => {
     return (<div>Loading&hellip;</div>);
   }
 
-  //
-  // 記事を削除
-  //
-  async function handleDelete() {
-    const currentUser = await Auth.currentAuthenticatedUser();
-    if(currentUser.username != post.authorId) return;
-
-    try {
-      // 更新系はLambdaのBackend側を呼び出し
-      await API.graphql({
-        authMode: "AMAZON_COGNITO_USER_POOLS",
-        query: deletePostAndConnectedData,
-        variables: { postId: post.id }
-      });
-
-      window.location.href = "/home";
-    } catch ({ errors }) {
-      console.error(...errors);
-      throw new Error(errors[0].message);
-    }
-  }
-
   return (
     <div>
       <img src="../images/dummy.svg" alt="thumbnail"/>
@@ -78,10 +58,6 @@ const Post = ({ post }) => {
           {post.url}
         </a>
       </div>
-
-      <AmplifyAuthenticator>
-        <button onClick={handleDelete}>削除</button>
-      </AmplifyAuthenticator>
     </div>
   );
 }

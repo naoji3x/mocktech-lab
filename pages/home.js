@@ -1,52 +1,57 @@
-import { useRouter } from 'next/router';
-import { useEffect } from 'react';
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router';
+import { useState, useEffect } from 'react';
 import styles from '../styles/Home.module.css'
-import { Amplify, withSSRContext } from "aws-amplify";
+import { Auth, Amplify, withSSRContext } from "aws-amplify";
 import { AmplifyAuthenticator, AmplifySignOut } from "@aws-amplify/ui-react";
 import { AuthState, onAuthUIStateChange } from '@aws-amplify/ui-components';
 import awsExports from "../src/aws-exports";
-import { useState } from 'react';
-import { searchPosts } from "../src/graphql/queries";
+import { listPosts } from "../src/graphql/queries";
 
 Amplify.configure({ ...awsExports, ssr: true });
-export async function getServerSideProps({ req, query = { phrase: null, nextToken: null } }) {
+
+//
+// ログイン後のホームページ。
+// SSRで実装しているが、ログイン後なのでSPAでの実装でも問題ないか。
+//
+
+//
+// TODO: この実装だと最初の100件を取得するだけなので、
+// 以降はnextTokenを使用して取ってくる必要あり。
+// また、特に表示順序は指定していないので修正要。
+//
+export async function getServerSideProps({ req }) {
   const SSR = withSSRContext({ req });
-
-  console.log(JSON.stringify(query));
-  const filter = (query.phrase == null || query.phrase=='')?
-    null:{ content: { matchPhrase: query.phrase } };
-
   const response = await SSR.API.graphql({
-    query: searchPosts, variables: {
-      filter: filter,
-//      sort: { direction: "desc", field: "updatedAt" }, ソートがうまくいかない。
-      limit: 20,
-      nextToken: query.nextToken,
-  }});
-
-  console.log(JSON.stringify(response.data.searchPosts.items));
+    query: listPosts, 
+    variables: {
+      limit: 100
+    }
+  });
 
   return {
     props: {
-      posts: response.data.searchPosts.items,
-      nextToken: response.data.searchPosts.nextToken
+      posts: response.data.listPosts.items,
+      nextToken: response.data.listPosts.nextToken
     },
   };
 }
 
-//
-// TODO: 一覧を表示する最低限の実装です。postsの一覧表示はコンポーネントしたい。
-//
 export default function Home({ posts = [], nextToken = null }) {
   const router = useRouter();
-  const [phrase, setPhrase] = useState(null);
+  //const [user, setCurrentUser] = useState(null);
 
-  // サインアウトしたときに一覧表示に飛ばす。
+  // サインアウトしたときに一覧表示に飛ばす。一瞬、Sign-in画面が表示されるのでもっといい実装がありそう。
   useEffect(() => {
+    /*
+    const init = async() => {
+      setCurrentUser(await Auth.currentAuthenticatedUser());
+    }
+    init()
+    */
+
     return onAuthUIStateChange((nextAuthState, authData) => {
-      console.log(nextAuthState + "->" + AuthState.SignOut);
       if(nextAuthState === AuthState.SignedOut) {
         router.push('/posts');
       }
@@ -56,7 +61,6 @@ export default function Home({ posts = [], nextToken = null }) {
   return (
     <AmplifyAuthenticator>
       <AmplifySignOut/>
-      
       <div className={styles.container}>
         <Head>
           <title>MockTech Lab</title>
@@ -64,22 +68,16 @@ export default function Home({ posts = [], nextToken = null }) {
         </Head>
 
         <main className={styles.main}>
-          <input 
-            type="text" 
-            name="keyword"
-            onChange={e => setPhrase(e.target.value)}
-            placeholder="キーワードを入力（例：zoom ）"
-          />
-          <button onClick={()=>router.push(`/home/?phrase=${phrase}&nextToken=${null}`)}>
-            Search
-          </button>
-
+          <h1>ホーム</h1>
           <ul>
             {posts.map((post) => (
               <li key={post.id}>
-                <Link href="/posts/[id]" as={`/posts/${post.id}`}>
+                <Link href="/home/posts/[id]"
+                  as={`/home/posts/${post.id}`}>
                   <a>{post.title}</a>
                 </Link>
+                <br />
+                  {post.id}
                 <br />
                   {post.content.substr(0, 150)}
                   {(post.content.length > 150)?<span>&hellip;</span>:""}
@@ -99,7 +97,6 @@ export default function Home({ posts = [], nextToken = null }) {
           2021 MockTech Lab all right reserved.
         </footer>
       </div>
-    </AmplifyAuthenticator>
+  </AmplifyAuthenticator>
   )
 }
-

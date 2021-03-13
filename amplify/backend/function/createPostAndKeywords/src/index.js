@@ -9,7 +9,6 @@ Amplify Params - DO NOT EDIT */
 
 const AWSAppSyncClient = require('aws-appsync').default;
 const gql = require('graphql-tag');
-//const moment = require('moment');
 global.fetch = require('node-fetch');
 
 let graphqlClient;
@@ -72,7 +71,6 @@ exports.handler = async (event, context, callback) => {
           title: event.arguments.input.title,
           content: event.arguments.input.content,
           url: event.arguments.input.url,
-//          timestamp: moment().format("YYYYMMDDHHmmss"),
           images: [],
           keywordValues: []
         }

@@ -1,40 +1,46 @@
+import { useRouter } from 'next/router';
 import Head from 'next/head'
 import Link from 'next/link'
-import { useRouter } from 'next/router';
 import styles from '../styles/Home.module.css'
 import { Amplify, withSSRContext } from "aws-amplify";
 import awsExports from "../src/aws-exports";
-import { listPosts } from "../src/graphql/queries";
+import { useState } from 'react';
+import { searchPosts } from "../src/graphql/queries";
 
 Amplify.configure({ ...awsExports, ssr: true });
 
-//
-// TODO: この実装だと最初の100件を取得するだけなので、
-// 以降はnextTokenを使用して取ってくる必要あり。
-// また、特に表示順序は指定していないので修正要。
-//
-export async function getServerSideProps({ req }) {
+export async function getServerSideProps({ req, query = { phrase: null, nextToken: null } }) {
   const SSR = withSSRContext({ req });
+
+  console.log(JSON.stringify(query));
+  const filter = (query.phrase == null || query.phrase=='')?
+    null:{ content: { matchPhrase: query.phrase } };
+
   const response = await SSR.API.graphql({
-    query: listPosts, 
-    variables: {
-      limit: 100
-    }
-  });
+    query: searchPosts, variables: {
+      filter: filter,
+//      sort: { direction: "desc", field: "updatedAt" }, ソートがうまくいかない。
+      limit: 20,
+      nextToken: query.nextToken,
+  }});
+
+  console.log(JSON.stringify(response.data.searchPosts.items));
 
   return {
     props: {
-      posts: response.data.listPosts.items,
-      nextToken: response.data.listPosts.nextToken
+      posts: response.data.searchPosts.items,
+      nextToken: response.data.searchPosts.nextToken
     },
   };
 }
 
 //
-// TODO: 一覧を表示する最低限の実装です。
+// TODO: 一覧を表示する最低限の実装です。postsの一覧表示はコンポーネントしたい。
 //
 export default function Posts({ posts = [], nextToken = null }) {
   const router = useRouter();
+  const [phrase, setPhrase] = useState(null);
+
   return (
     <div className={styles.container}>
       <Head>
@@ -43,7 +49,21 @@ export default function Posts({ posts = [], nextToken = null }) {
       </Head>
 
       <main className={styles.main}>
+        <h1>ランディングページ</h1>
+
         <button onClick={()=>router.push('/home')}>Sign In!</button>
+        <br/>
+
+        <input 
+          type="text" 
+          name="keyword"
+          onChange={e => setPhrase(e.target.value)}
+          placeholder="キーワードを入力（例：zoom ）"
+        />
+        <button onClick={()=>router.push(`/posts/?phrase=${phrase}&nextToken=${null}`)}>
+          Search
+        </button>
+
         <ul>
           {posts.map((post) => (
             <li key={post.id}>

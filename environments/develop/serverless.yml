@@ -1,5 +1,5 @@
 mocktech-lab:
   component: "@sls-next/serverless-component@1.18.0"
   inputs:
-    domain: ["dev", "studyclip.net"]
+    domain: ["dev2", "studyclip.net"]
     nextConfigDir: "../../"

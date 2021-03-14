@@ -20,7 +20,6 @@ Amplify.configure({ ...awsExports, ssr: true });
 export async function getServerSideProps({ req, query = { phrase: null, nextToken: null } }) {
   const SSR = withSSRContext({ req });
 
-  console.log(JSON.stringify(query));
   const filter = (query.phrase == null || query.phrase=='')?
     null:{ content: { matchPhrase: query.phrase } };
 
@@ -31,8 +30,6 @@ export async function getServerSideProps({ req, query = { phrase: null, nextToke
       limit: 20,
       nextToken: query.nextToken,
   }});
-
-  console.log(JSON.stringify(response.data.searchPosts.items));
 
   return {
     props: {

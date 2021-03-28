@@ -5,7 +5,7 @@ import styles from '../styles/Home.module.css'
 import { Amplify, withSSRContext } from "aws-amplify";
 import awsExports from "../src/aws-exports";
 import { useState } from 'react';
-import { searchPosts } from "../src/graphql/queries";
+//import { searchPosts } from "../src/graphql/queries";
 
 Amplify.configure({ ...awsExports, ssr: true });
 
@@ -17,6 +17,16 @@ Amplify.configure({ ...awsExports, ssr: true });
 // また、特に表示順序は指定していないので修正要。Amplify-ElasticSearchの連携だとsortがうまくできない。おそらくバグ。
 //
 
+export async function getServerSideProps({ req, query = { phrase: null, nextToken: null } }) {
+  return {
+    props: {
+      posts: [],
+      nextToken: null
+    },
+  };
+}
+
+/*
 export async function getServerSideProps({ req, query = { phrase: null, nextToken: null } }) {
   const SSR = withSSRContext({ req });
 
@@ -38,6 +48,7 @@ export async function getServerSideProps({ req, query = { phrase: null, nextToke
     },
   };
 }
+*/
 
 //
 // TODO: 一覧を表示する最低限の実装です。

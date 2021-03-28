@@ -35,7 +35,7 @@
 # 投稿
 #
 type Post @model
-  @searchable
+#  @searchable
   @key(name: "postsByUserId", fields: ["authorId"])
   @auth(rules: [
     { allow: public, operations: [read] },

@@ -44,37 +44,6 @@ export const listPosts = /* GraphQL */ `
     }
   }
 `;
-export const searchPosts = /* GraphQL */ `
-  query SearchPosts(
-    $filter: SearchablePostFilterInput
-    $sort: SearchablePostSortInput
-    $limit: Int
-    $nextToken: String
-    $from: Int
-  ) {
-    searchPosts(
-      filter: $filter
-      sort: $sort
-      limit: $limit
-      nextToken: $nextToken
-      from: $from
-    ) {
-      items {
-        id
-        createdAt
-        updatedAt
-        authorId
-        title
-        content
-        images
-        url
-        keywordValues
-      }
-      nextToken
-      total
-    }
-  }
-`;
 export const getKeyword = /* GraphQL */ `
   query GetKeyword($id: ID!) {
     getKeyword(id: $id) {
